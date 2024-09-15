@@ -1,0 +1,17 @@
+// This is Shopify's JSON template for online store 2.0
+// it is an alternative to the liquid template files.
+// Note that there should be one liquid or json with a given name, cannot use both
+// e.g. Having both 404.json and 404.liquid is not allowed
+
+{
+	"name": "Template 404",
+	"layout": "theme", // Will use the default main theme (optional)
+	"wrapper": "div#404_template.custom-class[custom-attribute=hello]", // The ids, classnames, and custom attribute here will render in html (optional)
+	"sections": {
+		// This can be any name, used as an id
+		"my-template-404": {
+			"type": "template-404" // The file name of the section
+		}
+	},
+	"order": ["my-template-404"] // Order according to the defined ids in sections
+}
