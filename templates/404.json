@@ -10,7 +10,7 @@
 	"sections": {
 		// This can be any name, used as an id
 		"my-template-404": {
-			"type": "template-404" // The file name of the section
+			"type": "custom-404" // The file name of the section
 		}
 	},
 	"order": ["my-template-404"] // Order according to the defined ids in sections
