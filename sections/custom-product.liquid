@@ -1,0 +1,23 @@
+<div class="max-w-6xl mx-auto my-8">
+  <div class="grid grid-cols-1 md:grid-cols2 gap-3">
+    <div class="product--medias">
+      <div class="hidden md:block">
+
+        {% comment %} 
+          The "media" object is used to access all media files (images, videos etc.) 
+          that are uploaded in a product.
+        {% endcomment %}
+        {% for media in product.media %}
+          <div class="h-100 overflow-hidden p-2">
+            {% comment %} 
+              When using render, we can pass objects or data to snippet files like "media: media".
+              This allows for using dynamic values in snippets, and making them very reusable.
+            {% endcomment %}
+            {% render 'product-media', media: media %}
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="product--information"></div>
+  </div>
+</div>
