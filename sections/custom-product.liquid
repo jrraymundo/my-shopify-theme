@@ -88,18 +88,20 @@
 {% comment %} 
   Sometimes if "defer" is not enough, this event listener can be used to make sure it works
 {% endcomment %}
-{% comment %} <script>
-  document.addEventListener('DOMContentLoaded', function () {
-    const swiper = new Swiper('.swiper', {
-      direction: 'horizontal',
-      pagination: {
-        el: '.swiper-pagination',
-        clickable: true,  // Ensure pagination bullets are clickable
-      },
-      navigation: {
-        prevEl: '.swiper-button-prev',
-        nextEl: '.swiper-button-next',
-      },
+{% comment %} 
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const swiper = new Swiper('.swiper', {
+        direction: 'horizontal',
+        pagination: {
+          el: '.swiper-pagination',
+          clickable: true,  // Ensure pagination bullets are clickable
+        },
+        navigation: {
+          prevEl: '.swiper-button-prev',
+          nextEl: '.swiper-button-next',
+        },
+      });
     });
-  });
-</script> {% endcomment %}
+  </script> 
+{% endcomment %}
