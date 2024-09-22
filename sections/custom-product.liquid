@@ -66,110 +66,222 @@
     </div>
 
     <div class="product--information sticky top-5 p-2">
-      {%form 'product', product%}
+      {% form 'product', product, id: 'product-form', novalidate: 'novalidate' %}
         <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
 
-        <div class="my-3">
-          <span class="text-xs text-gray-500">{{ product.vendor }}</span>
-        </div>
+        {% comment %}  
+          By using json templates (schema and blocks), we can enable theme editor to control
+          the order of rendering the fields in our form
+        {% endcomment %}
+        {% for block in section.blocks %}
+          {% case block.type %}
+            {% when 'vendor' %}
+              <div class="my-3">
+                <span class="text-xs text-gray-500">{{ product.vendor }}</span>
+              </div>
 
-        <div class="my-3">
-          <h1 class="text-3xl text-gray-900">{{ product.title }}</h1>
-        </div>
+            {% when 'title' %}
+              <div class="my-3">
+                <h1 class="text-3xl text-gray-900">{{ product.title }}</h1>
+              </div>
+            
+            {% when 'price' %}
+              <div class="my-3" id="price-{{ section.id }}">
+                <span class="text-base text-gray-500 line-through">
+                  {{ selected_variant.compare_at_price | money }}
+                </span>
+                <span class="text-lg text-gray-900">{{ selected_variant.price | money }}</span>
+      
+                {% if selected_variant.price < selected_variant.compare_at_price %}
+                  <span class="px-5 py-1 text-sm font-bold bg-red-500 rounded-full text-white mx-4">
+                    Sale
+                  </span>
+                {% endif %}
+              </div>
 
-        <div class="my-3">
-          <span class="text-base text-gray-500 line-through">
-            {{ selected_variant.compare_at_price | money }}
-          </span>
-          <span class="text-lg text-gray-900">{{ selected_variant.price | money }}</span>
+            {% when 'variant_selector' %}
+              <div class="my-3">
+                {% comment %} 
+                  This unless condition is added 
+                  to make sure that select variant options 
+                  will only apply to products with variants 
+                {% endcomment %}
+                {% unless product.has_only_default_variant %}
+                  <variant-selector data-url="{{ product.url }}" data-section="{{ section.id }}">
+                    {% for option in product.options_with_values %}
+                      <label for="Option-{{ section.id }}-{{ forloop.index0 }}">{{ option.name }}</label>
+                      <div class="my-2">
+                        {% comment %} 
+                          NOTE: The selected option or variant is actually mapped 
+                          to a query variable called "variant" in the url "?variant=".
+                          So changing the variant value via url can change the selected option
 
-          {% if selected_variant.price < selected_variant.compare_at_price %}
-            <span class="px-5 py-1 text-sm font-bold bg-red-500 rounded-full text-white mx-4">
-              Sale
-            </span>
-          {% endif %}
-        </div>
+                          The variant id can be retrieved by going to the product admin page                    
+                        {% endcomment %}
+                        <select 
+                          name="options[{{ option.name | escape }}]" 
+                          id="Option-{{section.id}}-{{ forloop.index0 }}" 
+                          class="w-full border py-1 px-3"
+                        >
+                          {% for value in option.values %}
+                            {% comment %} 
+                              Its possible to add conditional html attributes like in below option
+                              in order to apply "selected"
+                            {% endcomment %}
+                            <option 
+                              value="{{ value | escape }}"
+                              {% if option.selected_value == value %}
+                                selected="selected"
+                              {% endif %}
+                            >
+                              {{ value }}
+                            </option>
+                          {% endfor %}  
+                        </select>
+                      </div>
 
-        <div class="my-3">
-          {% comment %} 
-            This unless condition is added 
-            to make sure that select variant options 
-            will only apply to products with variants 
-          {% endcomment %}
-          {% unless product.has_only_default_variant %}
-            <div data-url="{{ product.url }}" data-section="{{ section.id }}">
-              {% for option in product.options_with_values %}
-                <label for="Option-{{ section.id }}-{{ forloop.index0 }}">{{ option.name }}</label>
-                <div class="my-2">
-                  {% comment %} 
-                    NOTE: The selected optin or variant is actually mapped 
-                    to a query variable called "variant" in the url "?variant=".
-                    So changing the variant value via url can change the selected option
-
-                    The variant id can be retrieved by going to the product admin page                    
-                  {% endcomment %}
-                  <select 
-                    name="options[{{ option.name | escape }}]" 
-                    id="Option-{{section.id}}-{{ forloop.index0 }}" 
-                    class="w-full border py-1 px-3"
-                  >
-                    {% for value in option.values %}
                       {% comment %} 
-                        Its possible to add conditional html attributes like in below option
-                        in order to apply "selected"
+                        This "hidden" script tag is done to make the Liquid object query-able in script files 
                       {% endcomment %}
-                      <option 
-                        value="{{ value | escape }}"
-                        {% if option.selected_value == value %}
-                          selected="selected"
-                        {% endif %}
-                      >
-                        {{ value }}
-                      </option>
-                    {% endfor %}  
-                  </select>
+                      <script type="application/json">
+                        {{ product.variants | json }}
+                      </script>
+                      
+                    {% endfor %}
+                  </variant-selector>
+                {% endunless %}
+              </div>
+
+            {% when 'quantity' %}
+              <div class="my-3">
+                <label for="Quantity-{{ section.id }}">Quantity</label>
+                <div class="my-2">
+                  <input 
+                    type="number" 
+                    name="quantity" 
+                    id="Quantity-{{ section.id  }}" 
+                    class="w-full border px-3 py-3"
+                    min="1" 
+                    value="1"
+                  >
                 </div>
-              {% endfor %}
-            </div>
-          {% endunless %}
+              </div>
 
-          <div class="my-3">
-            <label for="Quantity-{{ section.id }}">Quantity</label>
-            <div class="my-2">
-              <input 
-                type="number" 
-                name="quantity" 
-                id="Quantity-{{ section.id  }}" 
-                class="w-full border px-3 py-3"
-                min="1" 
-                value="1"
-              >
-            </div>
-          </div>
-        </div>
+            {% when 'description' %}
+              <div class="my-3">
+                <p class="text-gray-700">{{ product.description }}</p>
+              </div>
 
-        <div class="my-3">
-          <p class="text-gray-700">{{ product.description }}</p>
-        </div>
+            {% when 'checkout_buttons' %}
+              <div class="my-3">
+                <button 
+                  class="w-full px-6 py-4 bg-gray-900 text-white hover:bg-gray-700 rounded-sm my-2"
+                  {% if selected_variant.available == false %}
+                    disabled
+                  {% endif %}
+                >
+                  {% if selected_variant.available == false %}
+                    Sold Out
+                  {% else %}
+                    Add to cart
+                  {% endif %}
+                </button>
+              </div>
 
-        <div class="my-3">
-          <button 
-            class="w-full px-6 py-4 bg-gray-900 text-white hover:bg-gray-700 rounded-sm my-2"
-            {% if selected_variant.available == false %}
-              disabled
-            {% endif %}
-          >
-            {% if selected_variant.available == false %}
-              Sold Out
             {% else %}
-              Add to cart
-            {% endif %}
-          </button>
-        </div>
+
+          {% endcase %}
+        {% endfor %}
+
       {% endform %}
     </div>
   </div>
 </div>
+
+{% comment %} 
+  This script is for creating a custom element, in this case the "variant-selector"
+  which will allow us to write an event listener for change events in the variant selector fields.
+  In this way, we will be able to update the URL, selected form ID, and price
+  based on the variant selected.
+
+  The way product variants work in Shopify is that:
+    - Every possible variant has an equivalent object created by shopify (e.g Adult-Black, Adult-Blue, etc.)
+    - When a change in variant is intended, you need to get the correct variant object and use its values like id, 
+      and price to replace the old values in the form. So that when the customer submits the form, 
+      the correct variant is added to the cart
+{% endcomment %}
+<script>
+  class VariantSelector extends HTMLElement {
+    constructor() {
+      super();
+      this.addEventListener('change', this.onVariantChange)
+    }
+
+    onVariantChange() {
+      console.log("The variant selector changed")
+      this.getSelectedOptions()
+      this.getSelectedVariant()
+
+      if (this.currentVariant) {
+        // All these update methods are required to submit
+        // the correct variant to the cart
+        this.updateURL()
+        this.updateFormID()
+        this.updatePrice()
+      }
+    }
+
+    // Gets all the options available and save to a variable
+    getSelectedOptions() {
+      this.options = Array.from(this.querySelectorAll('select'), (select) => select.value)
+    }
+
+    // Gets the Liquid variant object that we declared in the DOM using script tags (hidden),
+    // so that that it can become accessible here.
+    getVariantJSON() {
+      this.variantData = this.variantData || JSON.parse(this.querySelector('[type="application/json"]').textContent)
+      return this.variantData
+    }
+
+    // Gets/finds the selected variant among the variant options array object
+    // by matching the selected options with those of each variant, all options must match
+    // to say that we have found the correct variant object
+    getSelectedVariant() {
+      this.currentVariant = this.getVariantJSON().find((variant) => {
+        const findings = !variant.options.map((option, index) => (
+          this.options[index] === option
+        )).includes(false);
+        if (findings === true) return variant;
+      })
+      console.log('this.currentVariant', this.currentVariant);
+    }
+
+    updateURL() {
+      if (!this.currentVariant) return;
+      window.history.replaceState({}, '', `${this.dataset.url}?variant=${this.currentVariant.id}`)
+    }
+
+    updateFormID() {
+      const form_input = document.querySelector('#product-form').querySelector('input[name="id"]')
+      form_input.value = this.currentVariant.id
+    }
+
+    updatePrice() {
+      fetch(`${this.dataset.url}?variant=${this.currentVariant.id}&section_id=${this.dataset.section}`)
+      .then((response) => response.text())
+      .then((responseText) => {
+        const id = `price-${this.dataset.section}`
+        const html = new DOMParser().parseFromString(responseText, 'text/html')
+
+        const oldPrice = document.getElementById(id)
+        const newPrice = html.getElementById(id)
+
+        if (oldPrice && newPrice) oldPrice.innerHTML = newPrice.innerHTML
+      })
+    }
+  }
+  customElements.define("variant-selector", VariantSelector)
+</script>
 
 {% comment %} 
   The attribute "defer" is used to make sure that the DOM has already loaded
@@ -190,25 +302,65 @@
       delay: 5000
     }
   })
+
+  // Sometimes if "defer" is not enough, this event listener 
+  // can be used to make sure it works:
+  //
+  // document.addEventListener('DOMContentLoaded', function () {
+  //   const swiper = new Swiper('.swiper', {
+  //     direction: 'horizontal',
+  //     pagination: {
+  //       el: '.swiper-pagination',
+  //       clickable: true,  // Ensure pagination bullets are clickable
+  //     },
+  //     navigation: {
+  //       prevEl: '.swiper-button-prev',
+  //       nextEl: '.swiper-button-next',
+  //     },
+  //   });
+  // });
 </script>
 
-{% comment %} 
-  Sometimes if "defer" is not enough, this event listener can be used to make sure it works
-{% endcomment %}
-{% comment %} 
-  <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      const swiper = new Swiper('.swiper', {
-        direction: 'horizontal',
-        pagination: {
-          el: '.swiper-pagination',
-          clickable: true,  // Ensure pagination bullets are clickable
-        },
-        navigation: {
-          prevEl: '.swiper-button-prev',
-          nextEl: '.swiper-button-next',
-        },
-      });
-    });
-  </script> 
-{% endcomment %}
+{% schema %}
+{
+  "name": "Product",
+  "blocks": [
+    {
+      "type": "vendor",
+      "name": "Vendor",
+      "limit": 1
+    },
+    {
+      "type": "title",
+      "name": "Title",
+      "limit": 1
+    },
+    {
+      "type": "price",
+      "name": "Price",
+      "limit": 1
+    },
+    {
+      "type": "variant_selector",
+      "name": "Variant Selector",
+      "limit": 1
+    },
+    {
+      "type": "quantity",
+      "name": "Quantity",
+      "limit": 1
+    },
+    {
+      "type": "description",
+      "name": "Description",
+      "limit": 1
+    },
+    {
+      "type": "checkout_buttons",
+      "name": "Checkout Buttons",
+      "limit": 1
+    }
+  ],
+  "settings": []
+}
+{% endschema %}
